@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Painting palette</title>
-    <link rel="stylesheet" href="styles.css?v=11">
+    <link rel="stylesheet" href="styles.css?v=12">
   </head>
   <body>
     <header class="toolbar">
@@ -48,12 +48,19 @@
             <button id="fewer-colors" type="button" aria-label="Fewer colors">−</button>
           </div>
           <div class="palette-save">
-            <button id="save-gradient" type="button" title="Save gradient as PNG (S)" aria-keyshortcuts="S" disabled>Save</button>
+            <div class="export-panel" role="group" aria-labelledby="export-label">
+              <span id="export-label">Export</span>
+              <div class="export-buttons">
+                <button id="save-gradient" class="export-button" type="button" title="Export gradient as PNG (S)" aria-keyshortcuts="S" disabled>PNG</button>
+                <button id="export-svg" class="export-button" type="button" title="Export editable gradient as SVG" disabled>SVG</button>
+                <button id="export-ase" class="export-button" type="button" title="Export stop colors as Adobe swatches" disabled>ASE</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       </section>
     </main>
-    <script type="module" src="app.js?v=12"></script>
+    <script type="module" src="app.js?v=13"></script>
   </body>
 </html>

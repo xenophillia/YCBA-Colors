@@ -1,6 +1,6 @@
 import { extractPalette } from './palette.mjs';
 import { galleryImages } from './gallery-images.mjs?v=2';
-import { downloadGradientPng } from './gradient-export.mjs';
+import { downloadGradientPng, downloadGradientSvg, downloadGradientAse } from './gradient-export.mjs?v=2';
 
 const input = document.querySelector('#painting-upload');
 const painting = document.querySelector('#painting');
@@ -19,8 +19,15 @@ const gradientToggle = document.querySelector('#gradient-toggle');
 const gradientPreview = document.querySelector('#gradient-preview');
 const markersToggle = document.querySelector('#markers-toggle');
 const saveGradientButton = document.querySelector('#save-gradient');
+const exportButtons = {
+  png: saveGradientButton,
+  svg: document.querySelector('#export-svg'),
+  ase: document.querySelector('#export-ase'),
+};
+const exporters = { png: downloadGradientPng, svg: downloadGradientSvg, ase: downloadGradientAse };
 let gradientStops = [];
 let savingGradient = false;
+let lastExportError = '';
 let gradientActive = false;
 let markersVisible = true;
 let selectedGalleryUrl;
@@ -90,25 +97,33 @@ function renderGradient(colors) {
   gradientPreview.style.backgroundImage = `linear-gradient(to bottom, ${cssStops.join(', ')})`;
   gradientPreview.setAttribute('aria-label', `Palette gradient, most to least prominent from top to bottom: ${description.join(', ')}`);
   gradientToggle.disabled = false;
-  saveGradientButton.disabled = savingGradient;
+  updateExportButtons();
 }
 
-async function saveCurrentGradient() {
+function updateExportButtons() {
+  for (const button of Object.values(exportButtons)) button.disabled = savingGradient || !gradientStops.length;
+}
+
+async function saveCurrentGradient(format = 'png') {
   if (!imageData || !pixelPicker || !gradientStops.length || savingGradient) return;
   savingGradient = true;
-  saveGradientButton.disabled = true;
+  updateExportButtons();
   const { source } = pixelPicker;
   try {
-    await downloadGradientPng(gradientStops, source.naturalWidth, source.naturalHeight);
+    await exporters[format](gradientStops, source.naturalWidth, source.naturalHeight);
+    if (status.textContent === lastExportError) status.textContent = '';
   } catch {
-    status.textContent = 'Could not save the gradient. Please try again.';
+    lastExportError = `Could not export ${format.toUpperCase()}. Please try again.`;
+    status.textContent = lastExportError;
   } finally {
     savingGradient = false;
-    saveGradientButton.disabled = !imageData || !gradientStops.length;
+    updateExportButtons();
   }
 }
 
-saveGradientButton.addEventListener('click', saveCurrentGradient);
+for (const [format, button] of Object.entries(exportButtons)) {
+  button.addEventListener('click', () => saveCurrentGradient(format));
+}
 document.addEventListener('keydown', event => {
   if (event.key.toLowerCase() !== 's' || event.ctrlKey || event.metaKey || event.altKey
     || event.repeat || event.isComposing || event.defaultPrevented) return;
@@ -288,7 +303,7 @@ restart.addEventListener('click', () => {
   pixelPicker = undefined;
   paletteColors = [];
   gradientStops = [];
-  saveGradientButton.disabled = true;
+  updateExportButtons();
   markersVisible = true;
   setGradientActive(false);
   gradientToggle.disabled = true;

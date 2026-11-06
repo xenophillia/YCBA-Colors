@@ -26,7 +26,7 @@ const sample = colors => ({ width: colors.length, height: 1, data: new Uint8Clam
 test('dots pick original pixels live with mouse, touch, keyboard, bounds, copy, and preview updates', async () => {
   const oldDocument = globalThis.document, oldImage = globalThis.Image;
   const oldNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
-  const nodes = Object.fromEntries(['#painting-upload', '#painting', '.workspace', '#markers', '#palette', '#status', '#mode', '#restart', '#more-colors', '#fewer-colors', '#gallery', '#gallery-toggle', '#gradient-toggle', '#gradient-preview', '#markers-toggle', '#save-gradient', 'main'].map(id => [id, new Element()]));
+  const nodes = Object.fromEntries(['#painting-upload', '#painting', '.workspace', '#markers', '#palette', '#status', '#mode', '#restart', '#more-colors', '#fewer-colors', '#gallery', '#gallery-toggle', '#gradient-toggle', '#gradient-preview', '#markers-toggle', '#save-gradient', '#export-svg', '#export-ase', 'main'].map(id => [id, new Element()]));
   const exported = [];
   globalThis.__pickerGradientDownload = async (stops, width, height) => { exported.push({ stops: structuredClone(stops), width, height }); };
   nodes['#mode'].value = 'prominent';
@@ -89,7 +89,8 @@ test('dots pick original pixels live with mouse, touch, keyboard, bounds, copy, 
   try {
     const source = (await readFile(new URL('./app.js', import.meta.url), 'utf8'))
       .replace("'./palette.mjs'", JSON.stringify(new URL('./palette.mjs', import.meta.url).href))
-      .replace("import { downloadGradientPng } from './gradient-export.mjs';", 'const downloadGradientPng = globalThis.__pickerGradientDownload;')
+      .replace(/import \{ downloadGradientPng[^}]*\} from '\.\/gradient-export\.mjs(?:\?[^']*)?';/,
+        'const downloadGradientPng = globalThis.__pickerGradientDownload; const downloadGradientSvg = downloadGradientPng; const downloadGradientAse = downloadGradientPng;')
       .replace(/import \{ galleryImages \} from '\.\/gallery-images\.mjs(?:\?[^']*)?';/, "const galleryImages = ['./first.png', './second.png'];");
     await import('data:text/javascript,' + encodeURIComponent(source));
     await Promise.resolve();
@@ -121,6 +122,10 @@ test('dots pick original pixels live with mouse, touch, keyboard, bounds, copy, 
       { hex: '#ffff00', offset: 0 }, { hex: '#ffff00', offset: .25 },
       { hex: '#0000ff', offset: .75 }, { hex: '#0000ff', offset: 1 },
     ] });
+    await nodes['#export-svg'].events.click();
+    await nodes['#export-ase'].events.click();
+    assert.deepEqual(exported[1], exported[0]);
+    assert.deepEqual(exported[2], exported[0]);
     assert(!first.hasPointerCapture(1));
     assert.equal(first['data-dragging'], undefined);
 

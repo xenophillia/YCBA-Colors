@@ -24,7 +24,13 @@ Refresh the page. TIFF originals get browser-compatible JPEG previews in `images
 
 ## Export gradients
 
-Click **Save** or press **S** to download the current gradient as a PNG at the painting's dimensions. Files use `Colortest_day-month_number.png`; numbering is stored in the browser and resets daily.
+Use the **Export** buttons below the palette:
+
+- **PNG** downloads the current gradient at the painting's dimensions. **S** remains the PNG shortcut.
+- **SVG** preserves the dimensions, editable linear gradient, stop colors, exact offsets, and top-to-bottom direction.
+- **ASE** exports an Adobe Swatch Exchange 1.0 group of RGB process swatches, one per gradient stop in order. Repeated colors remain separate stops, and swatch names include their positions. ASE contains colors rather than a gradient.
+
+All formats include manual dot edits and the current palette method's stop positions. Files use `Colortest_day-month_number` with the selected extension; numbering is shared across formats, stored in the browser, and resets daily.
 
 ## Tests
 

@@ -23,11 +23,12 @@ function sample(colors) {
 
 test('uploads, palette controls, gradient view, and restart keep the preview in sync', async () => {
   const oldDocument = globalThis.document, oldImage = globalThis.Image;
-  const nodes = Object.fromEntries(['#painting-upload', '#painting', '.workspace', '#markers', '#palette', '#status', '#mode', '#restart', '#more-colors', '#fewer-colors', '#gallery', '#gallery-toggle', '#gradient-toggle', '#gradient-preview', '#markers-toggle', '#save-gradient', 'main'].map(id => [id, new Element()]));
+  const nodes = Object.fromEntries(['#painting-upload', '#painting', '.workspace', '#markers', '#palette', '#status', '#mode', '#restart', '#more-colors', '#fewer-colors', '#gallery', '#gallery-toggle', '#gradient-toggle', '#gradient-preview', '#markers-toggle', '#save-gradient', '#export-svg', '#export-ase', 'main'].map(id => [id, new Element()]));
   const documentEvents = {}, savedGradients = [];
-  let saveGate;
-  globalThis.__testGradientDownload = async (stops, width, height) => {
-    savedGradients.push({ stops: structuredClone(stops), width, height });
+  let saveGate, failExport;
+  globalThis.__testGradientDownload = async (stops, width, height, format = 'png') => {
+    savedGradients.push({ stops: structuredClone(stops), width, height, ...(format === 'png' ? {} : { format }) });
+    if (format === failExport) throw new Error('Export failed');
     await saveGate;
   };
   nodes['.workspace'].hidden = true;
@@ -68,6 +69,8 @@ test('uploads, palette controls, gradient view, and restart keep the preview in 
     assert.equal(nodes['.workspace'].hidden, false);
     assert.equal(nodes['#restart'].hidden, false);
     assert.equal(nodes['#gradient-toggle'].disabled, false);
+    assert.equal(nodes['#export-svg'].disabled, nodes['#save-gradient'].disabled);
+    assert.equal(nodes['#export-ase'].disabled, nodes['#save-gradient'].disabled);
     const stops = nodes['#gradient-preview'].style.backgroundImage.match(/#[a-f0-9]{6}/g);
     assert.equal(stops.length, label === 'prominent' ? count * 2 : Math.max(2, count));
     if (label === 'prominent') {
@@ -93,7 +96,8 @@ test('uploads, palette controls, gradient view, and restart keep the preview in 
   try {
     const source = (await readFile(new URL('./app.js', import.meta.url), 'utf8'))
       .replace("'./palette.mjs'", JSON.stringify(new URL('./palette.mjs', import.meta.url).href))
-      .replace("import { downloadGradientPng } from './gradient-export.mjs';", 'const downloadGradientPng = globalThis.__testGradientDownload;')
+      .replace(/import \{ downloadGradientPng[^}]*\} from '\.\/gradient-export\.mjs(?:\?[^']*)?';/,
+        'const downloadGradientPng = globalThis.__testGradientDownload; const downloadGradientSvg = (...args) => globalThis.__testGradientDownload(...args, "svg"); const downloadGradientAse = (...args) => globalThis.__testGradientDownload(...args, "ase");')
       .replace(/import \{ galleryImages \} from '\.\/gallery-images\.mjs(?:\?[^']*)?';/, "const galleryImages = ['./images/first.png', './images/second.png'];");
     await import('data:text/javascript,' + encodeURIComponent(source));
     await Promise.resolve();
@@ -191,12 +195,16 @@ test('uploads, palette controls, gradient view, and restart keep the preview in 
     saveGate = new Promise(resolve => { finishSave = resolve; });
     const pendingSave = nodes['#save-gradient'].events.click();
     assert.equal(nodes['#save-gradient'].disabled, true);
+    assert.equal(nodes['#export-svg'].disabled, true);
+    assert.equal(nodes['#export-ase'].disabled, true);
     assert.deepEqual(savedGradients.at(-1).stops, [
       { hex: '#787878', offset: 0 }, { hex: '#787878', offset: .35 },
       { hex: '#0000ff', offset: .65 }, { hex: '#0000ff', offset: .7 },
       { hex: '#ff0000', offset: .9 }, { hex: '#ff0000', offset: 1 },
     ]);
     await nodes['#save-gradient'].events.click();
+    await nodes['#export-svg'].events.click();
+    await nodes['#export-ase'].events.click();
     await shortcut().result;
     assert.equal(savedGradients.length, 4); // No duplicate exports while encoding.
     changeMode('saturated');
@@ -213,6 +221,28 @@ test('uploads, palette controls, gradient view, and restart keep the preview in 
     await shortcut().result;
     assert.deepEqual(savedGradients.at(-1).stops, [{ hex: '#0000ff', offset: 0 }, { hex: '#ff0000', offset: 1 }]);
     changeMode('prominent');
+    await nodes['#export-svg'].events.click();
+    const svgExport = savedGradients.at(-1);
+    assert.equal(svgExport.format, 'svg');
+    assert.equal(svgExport.width, 10);
+    assert.equal(svgExport.height, 1);
+    assert.deepEqual(svgExport.stops, [
+      { hex: '#787878', offset: 0 }, { hex: '#787878', offset: .35 },
+      { hex: '#0000ff', offset: .65 }, { hex: '#0000ff', offset: .7 },
+      { hex: '#ff0000', offset: .9 }, { hex: '#ff0000', offset: 1 },
+    ]);
+    await nodes['#export-ase'].events.click();
+    assert.equal(savedGradients.at(-1).format, 'ase');
+    assert.deepEqual(savedGradients.at(-1).stops, svgExport.stops);
+    failExport = 'svg';
+    await nodes['#export-svg'].events.click();
+    assert.equal(nodes['#status'].textContent, 'Could not export SVG. Please try again.');
+    assert.equal(nodes['#save-gradient'].disabled, false);
+    assert.equal(nodes['#export-svg'].disabled, false);
+    assert.equal(nodes['#export-ase'].disabled, false);
+    failExport = undefined;
+    await nodes['#export-svg'].events.click();
+    assert.equal(nodes['#status'].textContent, '');
     const swatches = nodes['#palette'].children;
     const pins = nodes['#markers'].children;
     const paintingSrc = nodes['#painting'].src;
@@ -284,8 +314,12 @@ test('uploads, palette controls, gradient view, and restart keep the preview in 
     assert.equal(nodes['#markers-toggle']['aria-pressed'], 'true');
     assert.equal(nodes['#markers-toggle'].disabled, true);
     assert.equal(nodes['#save-gradient'].disabled, true);
+    assert.equal(nodes['#export-svg'].disabled, true);
+    assert.equal(nodes['#export-ase'].disabled, true);
     const savedBeforeReset = savedGradients.length;
     await nodes['#save-gradient'].events.click();
+    await nodes['#export-svg'].events.click();
+    await nodes['#export-ase'].events.click();
     assert.equal(shortcut().event.prevented, undefined);
     assert.equal(savedGradients.length, savedBeforeReset);
     decodeGate = undefined;

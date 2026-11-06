@@ -9,14 +9,14 @@
 body { margin: 0; background: #fff; color: #111; font-family: "Mallory", Arial, sans-serif; font-weight: 300; }
 main { padding: 32px; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.upload, #restart, #mode, #gradient-toggle, #markers-toggle, #save-gradient { display: inline-block; height: 38px; padding: 10px 16px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 14px/16px "Mallory", Arial, sans-serif; border-radius: 0; cursor: pointer; }
+.upload, #restart, #mode, #gradient-toggle, #markers-toggle, .export-button { display: inline-block; height: 38px; padding: 10px 16px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 14px/16px "Mallory", Arial, sans-serif; border-radius: 0; cursor: pointer; }
 #mode { appearance: none; -webkit-appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23111' stroke-width='1.2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-.upload:hover, #restart:hover, #mode:hover, #gradient-toggle:hover:not(:disabled), #markers-toggle:hover:not(:disabled), #save-gradient:hover:not(:disabled) { border-color: #111; }
+.upload:hover, #restart:hover, #mode:hover, #gradient-toggle:hover:not(:disabled), #markers-toggle:hover:not(:disabled), .export-button:hover:not(:disabled) { border-color: #111; }
 #restart[hidden] { display: none; }
-.upload:has(+ input:focus-visible), #restart:focus-visible, #mode:focus-visible, #gradient-toggle:focus-visible, #markers-toggle:focus-visible, #save-gradient:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
+.upload:has(+ input:focus-visible), #restart:focus-visible, #mode:focus-visible, #gradient-toggle:focus-visible, #markers-toggle:focus-visible, .export-button:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
 .preview-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
 #gradient-toggle[aria-pressed="true"] { border-color: #111; background: #111; color: #fff; }
-#gradient-toggle:disabled, #markers-toggle:disabled, #save-gradient:disabled { opacity: .35; cursor: default; }
+#gradient-toggle:disabled, #markers-toggle:disabled, .export-button:disabled { opacity: .35; cursor: default; }
 #markers-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; padding: 0; }
 #markers-toggle[aria-pressed="true"] { border-color: #111; }
 #markers-toggle svg { display: block; width: 18px; height: 18px; }
@@ -49,6 +49,9 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 
 .palette-panel { display: flex; flex-direction: column; align-items: flex-start; align-self: stretch; flex-grow: 1; flex-shrink: 0; }
 .palette-save { display: flex; justify-content: flex-end; width: 100%; margin-top: auto; padding-top: 24px; }
+.export-panel { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
+#export-label { font-size: 14px; line-height: 16px; }
+.export-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
 .palette-controls { display: flex; gap: 12px; margin-top: 20px; }
 .palette-controls button { width: 38px; height: 38px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 22px "Mallory", Arial, sans-serif; cursor: pointer; }
 .palette-controls button:hover:not(:disabled) { border-color: #111; }
