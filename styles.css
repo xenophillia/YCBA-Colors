@@ -1,0 +1,94 @@
+@font-face {
+  font-family: "Mallory";
+  src: url("style/Mallory-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: #111; font-family: "Mallory", Arial, sans-serif; font-weight: 300; }
+main { padding: 32px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.upload, #restart, #mode, #gradient-toggle, #markers-toggle, #save-gradient { display: inline-block; height: 38px; padding: 10px 16px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 14px/16px "Mallory", Arial, sans-serif; border-radius: 0; cursor: pointer; }
+#mode { appearance: none; -webkit-appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23111' stroke-width='1.2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.upload:hover, #restart:hover, #mode:hover, #gradient-toggle:hover:not(:disabled), #markers-toggle:hover:not(:disabled), #save-gradient:hover:not(:disabled) { border-color: #111; }
+#restart[hidden] { display: none; }
+.upload:has(+ input:focus-visible), #restart:focus-visible, #mode:focus-visible, #gradient-toggle:focus-visible, #markers-toggle:focus-visible, #save-gradient:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
+.preview-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+#gradient-toggle[aria-pressed="true"] { border-color: #111; background: #111; color: #fff; }
+#gradient-toggle:disabled, #markers-toggle:disabled, #save-gradient:disabled { opacity: .35; cursor: default; }
+#markers-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; padding: 0; }
+#markers-toggle[aria-pressed="true"] { border-color: #111; }
+#markers-toggle svg { display: block; width: 18px; height: 18px; }
+#markers-toggle .eye-slash { display: none; }
+#markers-toggle[aria-pressed="false"] .eye-slash { display: block; }
+#gradient-preview { position: absolute; inset: 0; }
+input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+#status { margin: 12px 0 0; font-size: 14px; }
+#status:empty { display: none; }
+.workspace { display: flex; align-items: flex-start; gap: 32px; margin-top: 0; }
+.workspace[hidden] { display: none; }
+.painting { position: relative; flex: 0 1 720px; min-width: 0; }
+.painting img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+#markers { position: absolute; inset: 0; pointer-events: none; }
+.marker { appearance: none; -webkit-appearance: none; position: absolute; width: 25px; height: 25px; padding: 0; border: 0; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+.marker[data-dragging] { cursor: grabbing; z-index: 1; }
+.marker:focus-visible { outline: 2px solid #111; outline-offset: 3px; z-index: 1; }
+#palette { display: grid; grid-template-columns: repeat(2, 100px); gap: 20px; flex-shrink: 0; }
+.swatch { appearance: none; -webkit-appearance: none; position: relative; display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; padding: 0; border: 0; border-radius: 50%; color: #fff; cursor: pointer; }
+.swatch:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
+.swatch:hover, .swatch:focus { z-index: 1; }
+.swatch-label { position: relative; z-index: 1; display: block; color: #fff; font: 300 13px/18px "Mallory", Arial, sans-serif; white-space: nowrap; pointer-events: none; opacity: 0; }
+.swatch:hover .swatch-label, .swatch:focus .swatch-label { opacity: 1; }
+@media (max-width: 680px) {
+  main { padding: 20px; }
+  .workspace { flex-direction: column; gap: 24px; margin-top: 24px; }
+  .painting { flex: none; width: 100%; }
+  #palette { grid-template-columns: repeat(auto-fit, 100px); width: 100%; gap: 12px; }
+}
+
+.palette-panel { display: flex; flex-direction: column; align-items: flex-start; align-self: stretch; flex-grow: 1; flex-shrink: 0; }
+.palette-save { display: flex; justify-content: flex-end; width: 100%; margin-top: auto; padding-top: 24px; }
+.palette-controls { display: flex; gap: 12px; margin-top: 20px; }
+.palette-controls button { width: 38px; height: 38px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 22px "Mallory", Arial, sans-serif; cursor: pointer; }
+.palette-controls button:hover:not(:disabled) { border-color: #111; }
+.palette-controls button:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
+.palette-controls button:disabled { opacity: .35; cursor: default; }
+@media (max-width: 680px) { .palette-panel { width: 100%; } }
+
+.toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 32px; }
+main { padding-top: 0; }
+#gallery-toggle { flex-shrink: 0; height: 38px; padding: 10px 16px; border: 1px solid #ccc; background: #fff; color: #111; font: 300 14px "Mallory", Arial, sans-serif; cursor: pointer; }
+#gallery-toggle[aria-pressed="true"] { border-color: #111; }
+#gallery-toggle:focus-visible, .gallery-item:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
+.working { min-width: 0; }
+#gallery { display: none; }
+.gallery-view { display: grid; grid-template-columns: minmax(400px, 1fr) minmax(0, 2fr); gap: 50px; align-items: start; }
+.gallery-view #gallery { display: grid; grid-template-columns: repeat(3, 100px); gap: 50px; }
+.gallery-item, .gallery-placeholder { width: 100px; height: 100px; background: #ddd; }
+.gallery-item { display: block; border: 0; padding: 0; cursor: pointer; }
+.gallery-item img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gallery-item[aria-pressed="true"] { outline: 1px solid #111; outline-offset: 5px; }
+#empty-preview { display: none; }
+.gallery-view .working:has(.workspace[hidden]) #empty-preview { display: block; width: calc(100% - 252px); aspect-ratio: 1; background: #ddd; margin-top: 0; }
+@media (max-width: 1100px) {
+  .gallery-view { grid-template-columns: 400px minmax(0, 1fr); gap: 24px; }
+  .gallery-view .workspace { flex-direction: column; }
+  .gallery-view .painting { flex: none; width: 100%; }
+  .gallery-view #palette { grid-template-columns: repeat(auto-fit, 100px); }
+  .gallery-view .palette-panel { width: 100%; }
+  .gallery-view .working:has(.workspace[hidden]) #empty-preview { width: 100%; }
+}
+@media (max-width: 760px) {
+  .toolbar { padding: 20px; gap: 12px; }
+  main { padding: 0 20px 20px; }
+  .gallery-view { grid-template-columns: minmax(0, 1fr); }
+  .gallery-view #gallery { padding-top: 0; gap: clamp(12px, 6vw, 50px); grid-template-columns: repeat(3, minmax(0, 100px)); }
+  .gallery-item, .gallery-placeholder { width: 100%; height: auto; aspect-ratio: 1; }
+
+}
+
+/* Keep the image and its marker overlay at the same fitted dimensions. */
+.painting,
+.gallery-view .painting { flex: 0 1 auto; width: calc(80vh * var(--painting-ratio, 1)); max-width: 100%; }
+.painting img { width: 100%; height: auto; }
